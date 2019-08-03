@@ -1,5 +1,7 @@
+import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'card_data.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
@@ -40,9 +42,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           // Cards
           new Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: CardFlipper(),
+            child: new CardFlipper(
+              cards: demoCards,
             ),
           ),
 
@@ -59,40 +60,92 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class CardFlipper extends StatefulWidget {
+  final List<CardViewModel> cards;
+
+  CardFlipper({
+    this.cards,
+  });
+
   @override 
   _CardFlipperState createState() => new _CardFlipperState();
 }
 
-class _CardFlipperState extends State<CardFlipper> {
+class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin {
+
+  double scrollPercent = 0.0;
+  Offset startDrag;
+  double startDragPercentScroll;
+  double finishScrollStart;
+  double finishScrollEnd;
+  AnimationController finishScrollController;
+
+  @override 
+  void initState() {
+    super.initState();
+
+    finishScrollController = new AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    )
+    ..addListener(() {
+      setState(() {
+        scrollPercent = lerpDouble(finishScrollStart, finishScrollEnd, finishScrollController.value);
+      });
+    });
+  }
+
+  @override 
+  void dispose() {
+    finishScrollController.dispose();
+    super.dispose();
+  }
 
   void _onHorizontalDragStart(DragStartDetails details){
-
+    startDrag = details.globalPosition;
+    startDragPercentScroll = scrollPercent;
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details){
-    
+    final currDrag = details.globalPosition;
+    final dragDistance = currDrag.dx - startDrag.dx;
+    final singleCardDragPercent = dragDistance / context.size.width;
+
+    setState(() {
+      scrollPercent =(startDragPercentScroll + (-singleCardDragPercent / widget.cards.length)).clamp(0.0, 1.0 - (1 / widget.cards.length));
+    });
   }
 
   void _onHorizontalDragEnd(DragEndDetails details){
-    
+    finishScrollStart = scrollPercent;
+    finishScrollEnd = (scrollPercent * widget.cards.length).round() / widget.cards.length;
+    finishScrollController.forward(from: 0.0);
+
+    setState(() {
+      startDrag = null;
+      startDragPercentScroll = null;
+    });
   }
 
   List<Widget> _buildCards() {
-    return [
-      _buildCard(0, 3, 0.0),
-      _buildCard(1, 3, 0.0),
-      _buildCard(2, 3, 0.0),
-    ];
+    final  cardCount = widget.cards.length;
+
+    int index = -1;
+    return widget.cards.map((CardViewModel ViewModel) {
+      ++index;
+      return _buildCard(ViewModel, index, cardCount, scrollPercent);
+    }).toList();
   }
 
-  Widget _buildCard(int cardIndex, int cardCount, double scrollPercent) {
+  Widget _buildCard(CardViewModel viewModel, int cardIndex, int cardCount, double scrollPercent) {
     final cardScrollPersent = scrollPercent / (1 / cardCount);
 
     return FractionalTranslation(
       translation: new Offset(cardIndex - cardScrollPersent, 0.0),
       child: new Padding(
         padding: const EdgeInsets.all(16.0),
-        child: new Card(),
+        child: new Card(
+          viewModel: viewModel,
+        ),
       ),
     );
   }
@@ -112,6 +165,12 @@ class _CardFlipperState extends State<CardFlipper> {
 }
 
 class Card extends StatelessWidget {
+  final CardViewModel viewModel;
+
+  Card({
+    this.viewModel,
+  })
+
   @override
   Widget build(BuildContext context) {
     return new Stack(
@@ -121,7 +180,7 @@ class Card extends StatelessWidget {
         new ClipRRect(
           borderRadius: new BorderRadius.circular(10.0),
           child: new Image.asset(
-            'assets/images/1.jpg',
+            viewModel.backdropAssetPath,
             fit: BoxFit.cover,
           ),
         ),
@@ -133,7 +192,7 @@ class Card extends StatelessWidget {
             new Padding(
               padding: const EdgeInsets.only(top: 30.0, left: 20.0, right: 20.0),
               child: new Text(
-                '10th Street'.toUpperCase(),
+                viewModel.address.toUpperCase(),
                 style: new TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
@@ -149,7 +208,7 @@ class Card extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 new Text(
-                  '2 - 3',
+                  '${viewModel.minHeightInFeet} - ${viewModel.maxHeightInFeet}',
                   style: new TextStyle(
                     color: Colors.white,
                     fontSize: 140.0,
@@ -181,7 +240,7 @@ class Card extends StatelessWidget {
                 new Padding(
                   padding: const EdgeInsets.only(left: 10.0),
                   child: new Text(
-                    '65.1',
+                    '${viewModel.tempInDegrees}',
                     style: new TextStyle(
                       color: Colors.white,
                       fontSize: 20.0,
@@ -211,7 +270,7 @@ class Card extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       new Text(
-                        'Mostly Cloud',
+                        viewModel.weatherType,
                         style: new TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
@@ -227,7 +286,7 @@ class Card extends StatelessWidget {
                         ),
                       ),
                       new Text(
-                        '12.3mph ENE',
+                        '${viewModel.windSpeedInMph}mph ${viewModel.cardinalDirection}',
                         style: new TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
