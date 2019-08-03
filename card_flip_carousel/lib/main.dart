@@ -42,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
           new Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Card(),
+              child: CardFlipper(),
             ),
           ),
 
@@ -54,6 +54,59 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class CardFlipper extends StatefulWidget {
+  @override 
+  _CardFlipperState createState() => new _CardFlipperState();
+}
+
+class _CardFlipperState extends State<CardFlipper> {
+
+  void _onHorizontalDragStart(DragStartDetails details){
+
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details){
+    
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details){
+    
+  }
+
+  List<Widget> _buildCards() {
+    return [
+      _buildCard(0, 3, 0.0),
+      _buildCard(1, 3, 0.0),
+      _buildCard(2, 3, 0.0),
+    ];
+  }
+
+  Widget _buildCard(int cardIndex, int cardCount, double scrollPercent) {
+    final cardScrollPersent = scrollPercent / (1 / cardCount);
+
+    return FractionalTranslation(
+      translation: new Offset(cardIndex - cardScrollPersent, 0.0),
+      child: new Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: new Card(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onHorizontalDragStart: _onHorizontalDragStart,
+      onHorizontalDragUpdate: _onHorizontalDragUpdate,
+      onHorizontalDragEnd: _onHorizontalDragEnd,
+      behavior: HitTestBehavior.translucent,
+      child: Stack(
+        children: _buildCards(),
+      )
     );
   }
 }
@@ -73,7 +126,6 @@ class Card extends StatelessWidget {
           ),
         ),
         
-
         // Content
         new Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -105,7 +157,7 @@ class Card extends StatelessWidget {
                     letterSpacing: -5.0,
                   ),
                 ),
-                Padding(
+                new Padding(
                   padding: const EdgeInsets.only(left: 10.0, top: 30.0),
                   child: new Text(
                     'FT',
@@ -126,7 +178,7 @@ class Card extends StatelessWidget {
                   Icons.wb_sunny,
                   color: Colors.white,
                 ),
-                Padding(
+                new Padding(
                   padding: const EdgeInsets.only(left: 10.0),
                   child: new Text(
                     '65.1',
