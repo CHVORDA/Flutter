@@ -9,10 +9,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Container(
-        child: new Directionality(
-      textDirection: TextDirection.ltr,
-      child: new AppScreen(),
-    ));
+      child: new Directionality(
+        textDirection: TextDirection.ltr,
+        child: new AppScreen(),
+      ),
+    );
   }
 }
 
@@ -24,12 +25,6 @@ class AppScreen extends StatefulWidget {
 
 class _AppScreenState extends State<AppScreen> {
   Color randomColor;
-
-  bool _tapInProgress;
-
-  _AppScreenState() {
-    _tapInProgress = false;
-  }
 
   static final Random _random = new Random();
 
@@ -46,8 +41,9 @@ class _AppScreenState extends State<AppScreen> {
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
+      behavior: HitTestBehavior.translucent,
       child: new Container(
-        color: _tapInProgress ? randomColor : setRandomColor(),
+        color: randomColor,
         child: new Center(
           child: new Text(
             "Hi there!",
