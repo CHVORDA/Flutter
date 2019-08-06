@@ -1,24 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:math';
 
 void main() {
-  runApp(new MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new Container(
-      child: new Directionality(
-        textDirection: TextDirection.ltr,
-        child: new AppScreen(),
-      ),
-    );
-  }
+  runApp(new AppScreen());
 }
 
 class AppScreen extends StatefulWidget {
-  AppScreen({Key key}) : super(key: key);
   @override
   _AppScreenState createState() => new _AppScreenState();
 }
@@ -32,21 +19,19 @@ class _AppScreenState extends State<AppScreen> {
     return new Color(0xFF000000 + _random.nextInt(0x00FFFFFF));
   }
 
-  void _onTap() {
-    setState(() {
-      randomColor = setRandomColor();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
       behavior: HitTestBehavior.translucent,
+      onTap: () {
+        setState(() {randomColor = setRandomColor();});
+      },
       child: new Container(
         color: randomColor,
         child: new Center(
           child: new Text(
             "Hi there!",
+            textDirection: TextDirection.ltr,
             style: new TextStyle(
               fontSize: 40.0,
               shadows: <Shadow>[
@@ -59,7 +44,6 @@ class _AppScreenState extends State<AppScreen> {
           ),
         ),
       ),
-      onTap: _onTap,
     );
   }
 }
