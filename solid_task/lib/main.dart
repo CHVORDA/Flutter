@@ -2,21 +2,21 @@ import 'package:flutter/widgets.dart';
 import 'dart:math';
 
 void main() {
-  runApp(new AppScreen());
+  runApp(new SolidTestApp());
 }
 
-class AppScreen extends StatefulWidget {
+class SolidTestApp extends StatefulWidget {
   @override
-  _AppScreenState createState() => new _AppScreenState();
+  _SolidTestAppState createState() => new _SolidTestAppState();
 }
 
-class _AppScreenState extends State<AppScreen> {
+class _SolidTestAppState extends State<SolidTestApp> {
   Color randomColor;
 
-  static final Random _random = new Random();
+  static final Random random = new Random();
 
-  static Color setRandomColor() {
-    return new Color(0xFF000000 + _random.nextInt(0x00FFFFFF));
+  static Color getRandomColor() {
+    return new Color(0xFF000000 + random.nextInt(0x00FFFFFF));
   }
 
   @override
@@ -24,7 +24,7 @@ class _AppScreenState extends State<AppScreen> {
     return new GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        setState(() {randomColor = setRandomColor();});
+        setState(() {randomColor = getRandomColor();});
       },
       child: new Container(
         color: randomColor,
