@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -152,6 +153,31 @@ class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin
     }).toList();
   }
 
+  Matrix4 _buildCardProjection(double scrollPercent) {
+    final perspective = 0.002;
+    final radius = 1.0;
+    final angle = scrollPercent * pi / 8;
+    final horizontalTranslation = 0.0;
+    Matrix4 projection = new Matrix4.identity()
+      ..setEntry(0, 0, 1 / radius)
+      ..setEntry(1, 1, 1 / radius)
+      ..setEntry(3, 2, -perspective)
+      ..setEntry(2, 3, -radius)
+      ..setEntry(3, 3, perspective * radius + 1.0);
+
+    // Model matrix by first translating the object from the origin of the world
+    // by radius in the z axis and then rotating against the world.
+    final rotationPointMultiplier = angle > 0.0 ? angle / angle.abs() : 1.0;
+    // print('Angle: $angle');
+    projection *= new Matrix4.translationValues(
+            horizontalTranslation + (rotationPointMultiplier * 300.0), 0.0, 0.0) *
+        new Matrix4.rotationY(angle) *
+        new Matrix4.translationValues(0.0, 0.0, radius) *
+        new Matrix4.translationValues(-rotationPointMultiplier * 300.0, 0.0, 0.0);
+
+    return projection;
+  }
+
   Widget _buildCard(CardViewModel viewModel, int cardIndex, int cardCount, double scrollPercent) {
     final cardScrollPersent = scrollPercent / (1 / cardCount);
     final parallax = scrollPercent - (cardIndex / cardCount);
@@ -160,9 +186,12 @@ class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin
       translation: new Offset(cardIndex - cardScrollPersent, 0.0),
       child: new Padding(
         padding: const EdgeInsets.all(16.0),
-        child: new Card(
-          viewModel: viewModel,
-          parallaxPercent: parallax,
+        child: Transform(
+          transform: _buildCardProjection(cardScrollPersent - cardIndex),
+          child: new Card(
+            viewModel: viewModel,
+            parallaxPercent: parallax,
+          ),
         ),
       ),
     );
